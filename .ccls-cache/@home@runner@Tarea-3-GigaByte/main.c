@@ -198,6 +198,7 @@ void mostrarTareas(List *TPH)
 
 void marcarCompletada(List *TPH)
 {
+  printf("ola");
   return;
 }
 
