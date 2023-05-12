@@ -5,30 +5,33 @@
 
 typedef struct Node Node;
 
-struct Node {
-    void * data;
-    Node * next;
-    Node * prev;
+struct Node 
+{
+  void *data;
+  Node *next;
+  Node *prev;
 };
 
-struct List {
-    Node * head;
-    Node * tail;
-    Node * current;
+struct List 
+{
+  Node *head;
+  Node *tail;
+  Node *current;
 };
 
 typedef List List;
 
-Node * createNode(void * data) {
-    Node * new = (Node *)malloc(sizeof(Node));
-    assert(new != NULL);
-    new->data = data;
-    new->prev = NULL;
-    new->next = NULL;
-    return new;
+Node * createNode(void * data) 
+{
+  Node *new = (Node *) malloc(sizeof(Node));
+  assert(new != NULL);
+  new->data = data;
+  new->prev = NULL;
+  new->next = NULL;
+  return new;
 }
 //1
-List * createList() {
+List *createList() {
     List * list = (List *) malloc(sizeof(List));
     if(list == NULL) return NULL;
     list->head = NULL;
@@ -36,19 +39,19 @@ List * createList() {
     return list;
 }
 //2
-void * firstList(List * list) {
+void *firstList(List * list) {
     if(list == NULL || list->head == NULL) return NULL;
     list->current = list->head;
     return (list->current->data);
 }
 
-void * nextList(List * list) {
+void *nextList(List * list) {
     if(list == NULL || list->current == NULL || list->current->next == NULL) return NULL;
     list->current = list->current->next;
     return (list->current->data);
 }
 //3
-void * lastList(List * list) {
+void *lastList(List * list) {
   if(list == NULL || list->current == NULL || list->current->next == NULL) return NULL;
   
   while(list->current->next != NULL)
@@ -58,7 +61,7 @@ void * lastList(List * list) {
   return list->current->data;
 }
 
-void * prevList(List * list) {
+void *prevList(List * list) {
   if(list == NULL || list->current == NULL || list->current->prev == NULL) return NULL;
   list->current = list->current->prev;
   return list->current->data;
@@ -144,5 +147,5 @@ void *popCurrent(List * list)
 
 void cleanList(List * list)
 {
-    while (list->head != NULL) popFront(list);
+  while (list->head != NULL) popFront(list);
 }

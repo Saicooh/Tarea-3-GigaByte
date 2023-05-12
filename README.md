@@ -7,7 +7,7 @@ Para una correcta ejecución de nuestra tarea y poder tener un acceso al program
 ## **Herramientas utilizadas**
 * [Replit](https://replit.com): Utilizamos esta herramienta mayoritariamente para facilitar el desarrollo del código de manera conjunta.
   
-* [GitHub]()
+* [GitHub](https://github.com/Saicooh/Tarea-3-GigaByte): Utilizamos GitHub y Git para facilitar la creación de commits de la tarea y hostear nuestro repositorio de manera segura.
 
 ## Funcionamiento del programa
 
@@ -24,9 +24,9 @@ Además de esos detalles, el programa funciona correctamente.
 * José Lara Arce:
   
   1. Encargado de la estructuración general del programa en ```main.c``` (menú y variables asociadas) y ```README.md```.
-  2. Encargado de la creación de las funciones ```crearPerfil``` y ```mostrarPerfil()```.
-  3. Encargado de las subfunciones ```validar()``` y ```preguntarNombreUsuario```.
-  4. Aporte en la creación de la función ```desahacerAccion()``` (Función fue hecha grupalmente).
+  2. Encargado de la creación de las funciones ```agregarTarea()``` y ```mostrarTareas()```.
+  3. Encargado de las subfunciones ```validar()``` y ```preguntarTarea()```.
+  4. Aporte en la creación de la función ```desahacerAccion()``` (Función fue hecha entre los dos).
   ---
   
 * Claudio Toledo:
