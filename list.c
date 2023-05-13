@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <stdbool.h>
 #include "list.h"
 
 typedef struct Node Node;
@@ -148,4 +149,35 @@ void *popCurrent(List * list)
 void cleanList(List * list)
 {
   while (list->head != NULL) popFront(list);
+}
+
+bool List_isEmpty(List *list)
+{
+  return (list -> head == NULL);
+}
+
+List *List_clone(List *src)
+{
+  if (src == NULL) {
+    return NULL;
+  }
+
+  List *dst = createList();
+
+  List *tempStack = createList();
+  while (!List_isEmpty(src)) 
+  {
+    void *element = popFront(src);
+    pushFront(dst, element);
+    pushFront(tempStack, element);
+  }
+
+  while (!List_isEmpty(tempStack)) 
+  {
+    pushFront(src, popFront(tempStack));
+  }
+
+  free(tempStack);
+
+  return dst;
 }

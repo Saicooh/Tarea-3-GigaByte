@@ -6,6 +6,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <ctype.h>
+#include <time.h>
 
 #define MAX 31
 
@@ -125,19 +126,19 @@ void preguntarTarea(char *nombreTarea) // Solicita que el usuario ingrese una ta
 {
   printf("Ingrese tarea:\n");
   getchar();
-  scanf("%[^\n]s", nombreTarea);
+  scanf("%30s", nombreTarea);
 }
+
 
 // Funciones
 
 // 1.
 
-void agregarTarea(Heap *TPH, int *registrado)
+void agregarTarea(Heap *TPH, int *tareasRegistradas)
 {
   Tarea *tareaAux = malloc(sizeof(Tarea));
-  char tarea[MAX];
+  char *tarea = (char*) malloc(sizeof(char));
   int prioridadT;
-  
   tareaAux -> tareasPrecedentes = createStack();
   tareaAux -> completada = false;
   
@@ -148,12 +149,11 @@ void agregarTarea(Heap *TPH, int *registrado)
   
   strcpy(tareaAux -> nombre, tarea);
   
-  (*registrado)++;
+  (*tareasRegistradas)++;
 
   heap_push(TPH, tareaAux, prioridadT);
 
   printf("\nTarea agregada!\n\n");
-  
 }
 
 // 2.
@@ -163,44 +163,54 @@ void establecerPrecedencia(Heap *TPH)
   Heap *aux = heap_clone(TPH);
   Heap *auxDos = heap_clone(TPH);
   
-  char *tarea1 = (char*) malloc(sizeof(char));
-  bool banderitaTarea1 = false;
-  char *tarea2 = (char*) malloc(sizeof(char));
-  bool banderitaTarea2 = false;
-  
-  printf("Ingrese tarea 1:\n");
-  getchar();
-  scanf("%30s", tarea1);
-  
-  printf("Ingrese tarea 2:\n");
-  getchar();
-  scanf("%30s", tarea2);
+  char *tarea1 = (char*) malloc(sizeof(char)), *tarea2 = (char*) malloc(sizeof(char));
+  bool banderitaTarea1 = false, banderitaTarea2 = false;
 
+  preguntarTarea(tarea1); 
+  printf("\n");
+  preguntarTarea(tarea2);
+  printf("\n");
+  
+  Tarea *tareaActual1;
+  
   while (heap_top(aux) != NULL) 
   {
-    Tarea *tareaActual = (Tarea *) heap_top(aux);
-    Tarea *tareaActualAux = (Tarea *) heap_top(aux);
-
-    if(strcmp(tareaActual->nombre,tarea1) == 0) 
+    tareaActual1 = (Tarea *) heap_top(aux);
+    
+    if(strcmp(tareaActual1 -> nombre, tarea1) == 0) 
     {
       banderitaTarea1 = true;
-
-      while (heap_top(auxDos) != NULL) 
+      
+      while (heap_top(auxDos) != NULL)   
       {
-        if(strcmp(tareaActualAux->nombre,tarea2) == 0) banderitaTarea2 = true;
+        Tarea *tareaActual2 = (Tarea *) heap_top(auxDos);
+      
+        if(strcmp(tareaActual2->nombre, tarea2) == 0) 
+        {
+          banderitaTarea2 = true;
+          
+          if(banderitaTarea2 == true) 
+          {
+            stack_push(tareaActual1 -> tareasPrecedentes, tarea2);
+            TPH = heap_clone(auxDos);
+            printf("Ahora la tarea %s es precedente de %s!\n\n", tarea2, tarea1);
+            return;
+          }
+        }
         heap_pop(auxDos);
       }
-
-      if(banderitaTarea2 == true) 
+      
+      if(banderitaTarea2 == false)
       {
-        printf("Ahora %s es precedente de %s", tarea2, tarea1);
-        stack_push(tareaActual -> tareasPrecedentes, tarea2);
+        printf("No se encontró la tarea ingresada.\n");
+        return;
       }
     }
     heap_pop(aux);
   }
+  printf("No se encontró la tarea ingresada.\n");
+  
 }
-
 // 3.
 
 void mostrarTareas(Heap *TPH)
@@ -209,53 +219,76 @@ void mostrarTareas(Heap *TPH)
   
   printf("Tareas por hacer, ordenadas por prioridad y precedencia:\n\n");
 
+  int cont2 = 0;
+  
   while (heap_top(aux) != NULL) 
   {
     Tarea *tareaActual = (Tarea *) heap_top(aux);
-    Stack *pila = tareaActual->tareasPrecedentes;
+    Stack *pila = stack_clone(tareaActual -> tareasPrecedentes);
+    
     int cont = 0;
+    printf("%i. %s (Prioridad: %i)", cont2 + 1, tareaActual -> nombre, heap_top_priority(aux));
     
-    printf("%i. %s (Prioridad: %i)\n", cont + 1, tareaActual -> nombre, heap_top_priority(aux));
+    if(!stack_top(tareaActual -> tareasPrecedentes)) printf("\n");
     
-    if(tareaActual -> tareasPrecedentes != NULL)
+    else while (stack_top(pila) != NULL)
     {
-      while(pila != NULL)
-      {
-        char *precedente = stack_pop(tareaActual -> tareasPrecedentes);
-        if (cont == 0) printf("- Precedente(s): %s", precedente);
-        else printf(", %s", precedente);
-      }
-      printf("\n");
+      char *precedente = stack_pop(pila);
+      if (cont == 0) printf(" - Precedente(s): %s", precedente);
+      else printf(", %s", precedente);
+      cont++;
     }
-    
-    cont++;
+    printf("\n");
+    cont2++;
     heap_pop(aux);
   }
-  
   free(aux);
-  
-  printf("\n");
 }
 
 // 4.
 
-void marcarCompletada(Heap *TPH)
+void marcarCompletada(Heap *TPH, int *tareasRegistradas)
 {
-  printf("ola");
-  return;
+  Heap *auxBuscar = heap_clone(TPH);
+  
+  char *tarea = (char *) malloc(sizeof(char));
+  preguntarTarea(tarea);
+  
+  Tarea *tareaBuscar;
+
+  while(heap_top(auxBuscar) != NULL)
+  {
+    tareaBuscar = heap_top(auxBuscar);
+    
+    if(strcmp(tareaBuscar -> nombre, tarea) == 0)
+    {
+      heap_remove(TPH, tareaBuscar -> nombre);
+      printf("\nLa tarea %s ha sido marcada como completada y fue eliminada de lista de tareas pendientes.\n\n", tarea);
+      //(*tareasRegistradas)--;
+      break;
+    }
+    heap_pop(auxBuscar);
+  }
+
+  if(!heap_top(auxBuscar)) printf("\nNo se encontró la tarea %s en el sistema.\n\n", tarea);
+  
+  auxBuscar = heap_clone(TPH);
+  free(tarea);
 }
 
 // 5.
 
 void deshacerAccion(Heap *TPH)
 {
+  
   return;
 }
 
 // 6.
 
-void cargarTareas(Heap *TPH, int *registrado)
+void cargarTareas(Heap *TPH, int *tareasRegistradas)
 {
+  
   return;
 }
 
@@ -263,6 +296,8 @@ void cargarTareas(Heap *TPH, int *registrado)
 
 int main()
 {
+  
+  
   /*
                       ____ _             _           _             
                      / ___(_) __ _  __ _| |__  _   _| |_ ___     
@@ -280,7 +315,7 @@ int main()
   
   int user_continue = 1;
 
-  int registrado = 0;
+  int tareasRegistradas = 0;
 
   Heap *tareasPorHacer = createHeap();
   
@@ -294,18 +329,18 @@ int main()
     
     validarOpcion(&opcion); // Validamos que opción sea un número.
     
-    if(registrado == 0 && opcion != 1 && opcion != 6 && opcion != 7) printf("No hay tareas registradas, registre una primero.\n");
+    if(tareasRegistradas == 0 && opcion != 1 && opcion != 6 && opcion != 7) printf("No hay tareas registradas, registre una primero.\n");
     else
     {
       switch(opcion)
       {
         case 1 :
-          agregarTarea(tareasPorHacer, &registrado);
+          agregarTarea(tareasPorHacer, &tareasRegistradas);
           validar(&user_continue);
           break;
 
         case 2 :
-          if(registrado < 2)
+          if(tareasRegistradas < 2)
           {
             printf("Deben registrarse al menos 2 tareas.\n");
             break;
@@ -320,7 +355,7 @@ int main()
           break;
 
         case 4 :
-          marcarCompletada(tareasPorHacer);
+          marcarCompletada(tareasPorHacer, &tareasRegistradas);
           validar(&user_continue);
           break;
 
@@ -330,7 +365,7 @@ int main()
           break;
 
         case 6 :
-          cargarTareas(tareasPorHacer, &registrado);
+          cargarTareas(tareasPorHacer, &tareasRegistradas);
           validar(&user_continue);
           break;
         
