@@ -14,7 +14,8 @@ typedef struct
 {
   char nombre[MAX];
   bool completada;
-  Stack *tareasPrecedentes; // Creamos una pila de tareas precedentes.
+  bool procedentes;
+  List *tareasPrecedentes; // Creamos una pila de tareas precedentes.
   Stack *registro;
 } Tarea; // Definimos nuestra estructura a trabajar.
 
@@ -119,6 +120,7 @@ char *gets_csv_field(char *tmp, int k) // Obtenemos la linea k del archivo.
     ret[i - ini_i] = 0;
     return ret;
   }
+
   return NULL;
 }
 
@@ -126,9 +128,8 @@ void preguntarTarea(char *nombreTarea) // Solicita que el usuario ingrese una ta
 {
   printf("Ingrese tarea:\n");
   getchar();
-  scanf("%30s", nombreTarea);
+  scanf("%30[^\n]s", nombreTarea);
 }
-
 
 // Funciones
 
@@ -139,15 +140,17 @@ void agregarTarea(Heap *TPH, int *tareasRegistradas)
   Tarea *tareaAux = malloc(sizeof(Tarea));
   char *tarea = (char*) malloc(sizeof(char));
   int prioridadT;
-  tareaAux -> tareasPrecedentes = createStack();
+  
+  tareaAux -> tareasPrecedentes = createList();
   tareaAux -> completada = false;
+  tareaAux -> procedentes = false;
   
   preguntarTarea(tarea);
 
   printf("\nIngrese prioridad:\n");
   scanf("%d", &prioridadT);
-  
   strcpy(tareaAux -> nombre, tarea);
+  prioridadT = prioridadT * (-1);
   
   (*tareasRegistradas)++;
 
@@ -191,10 +194,26 @@ void establecerPrecedencia(Heap *TPH)
           
           if(banderitaTarea2 == true) 
           {
-            stack_push(tareaActual1 -> tareasPrecedentes, tarea2);
-            TPH = heap_clone(auxDos);
-            printf("Ahora la tarea %s es precedente de %s!\n\n", tarea2, tarea1);
-            return;
+            if(heap_top_priority(aux) < heap_top_priority(auxDos))
+            {
+              pushFront(tareaActual1 -> tareasPrecedentes, tarea2);
+              tareaActual1 -> procedentes = true;
+              
+              printf("Ahora la tarea %s es precedente de %s!\n\n", tarea2, tarea1);
+              
+              TPH = heap_clone(auxDos);
+              
+              free(aux);
+              free(auxDos);
+              return;
+            }
+            else
+            {
+              printf("No se pueden asignar las tareas como procedentes\n\n");
+              free(aux);
+              free(auxDos);
+              return;
+            }
           }
         }
         heap_pop(auxDos);
@@ -203,46 +222,69 @@ void establecerPrecedencia(Heap *TPH)
       if(banderitaTarea2 == false)
       {
         printf("No se encontró la tarea ingresada.\n");
+        free(aux);
+        free(auxDos);
         return;
       }
     }
     heap_pop(aux);
   }
   printf("No se encontró la tarea ingresada.\n");
+  free(aux);
+  free(auxDos);
   
 }
 // 3.
 
 void mostrarTareas(Heap *TPH)
 {
-  Heap *aux = heap_clone(TPH);
-  
+  Heap *auxSinProcedentes = heap_clone(TPH);
+  Heap *auxConProcedentes = heap_clone(TPH);
+  int cont, cont2 = 0;
   printf("Tareas por hacer, ordenadas por prioridad y precedencia:\n\n");
-
-  int cont2 = 0;
   
-  while (heap_top(aux) != NULL) 
+  while (heap_top(auxSinProcedentes) != NULL) 
   {
-    Tarea *tareaActual = (Tarea *) heap_top(aux);
-    Stack *pila = stack_clone(tareaActual -> tareasPrecedentes);
+    Tarea *tareaActual = (Tarea *) heap_top(auxSinProcedentes);
+    Stack *lista = List_clone(tareaActual -> tareasPrecedentes);
     
-    int cont = 0;
-    printf("%i. %s (Prioridad: %i)", cont2 + 1, tareaActual -> nombre, heap_top_priority(aux));
-    
-    if(!stack_top(tareaActual -> tareasPrecedentes)) printf("\n");
-    
-    else while (stack_top(pila) != NULL)
+    if(tareaActual -> procedentes == false)
     {
-      char *precedente = stack_pop(pila);
-      if (cont == 0) printf(" - Precedente(s): %s", precedente);
-      else printf(", %s", precedente);
-      cont++;
+      printf("%i. %s (Prioridad: %i)", cont2 + 1, tareaActual -> nombre, (int) heap_top_priority(auxSinProcedentes) * (-1));
+      printf("\n");
+      cont2++;
     }
-    printf("\n");
-    cont2++;
-    heap_pop(aux);
+    heap_pop(auxSinProcedentes);
   }
-  free(aux);
+
+  while (heap_top(auxConProcedentes) != NULL) 
+  {
+    Tarea *tareaActual = (Tarea *) heap_top(auxConProcedentes);
+    Stack *lista = List_clone(tareaActual -> tareasPrecedentes);
+
+    if(tareaActual -> procedentes == true)
+    {
+      printf("%i. %s (Prioridad: %i)", cont2 + 1, tareaActual -> nombre, (int) heap_top_priority(auxConProcedentes) * (-1));
+    
+      cont = 0;
+      
+      if(!firstList(tareaActual -> tareasPrecedentes)) printf("\n");
+        
+      else while (firstList(lista) != NULL)
+      {
+        char *precedente = popFront(lista);
+        if (cont == 0) printf(" - Precedente(s): %s", precedente);
+        else printf(", %s", precedente);
+        cont++;
+      }
+      printf("\n");
+      cont2++;
+    }
+    heap_pop(auxConProcedentes);
+  }
+  printf("\n");
+  free(auxSinProcedentes);
+  free(auxConProcedentes);
 }
 
 // 4.
@@ -250,37 +292,99 @@ void mostrarTareas(Heap *TPH)
 void marcarCompletada(Heap *TPH, int *tareasRegistradas)
 {
   Heap *auxBuscar = heap_clone(TPH);
+  Heap *auxRecorrer = heap_clone(TPH);
   
   char *tarea = (char *) malloc(sizeof(char));
-  preguntarTarea(tarea);
   
-  Tarea *tareaBuscar;
+  preguntarTarea(tarea);
 
   while(heap_top(auxBuscar) != NULL)
   {
-    tareaBuscar = heap_top(auxBuscar);
+    Tarea *tareaBuscar = (Tarea *) heap_top(auxBuscar);
     
     if(strcmp(tareaBuscar -> nombre, tarea) == 0)
     {
-      heap_remove(TPH, tareaBuscar -> nombre);
+      if(tareaBuscar -> procedentes == true)
+      {
+        printf("\n¿estás seguro que desea eliminar la tarea? s/n\n");
+        
+        char salida[2];
+        scanf("%1s", salida);
+        
+        if(strcmp(salida, "n") == 0)
+        {
+          printf("\nLa tarea no fue eliminada\n\n");
+          return;
+        }
+          
+        else if (strcmp(salida, "s") == 0)
+        {
+          //en la funcion se ingresa el TPH, auxRecorrer,
+          while(heap_top(auxRecorrer) != NULL)
+          {
+            Tarea *tareaRecorrer = (Tarea *) heap_top(auxRecorrer);
+            
+            while(tareaRecorrer -> tareasPrecedentes != NULL)
+            {
+              printf("boomDDDd\n");
+              char *precedente = firstList(tareaRecorrer -> tareasPrecedentes);
+              
+              printf("%s\n", precedente);
+              printf("%s\n", tarea);
+              
+              if(strcmp(precedente, tarea) == 0)
+              {
+                printf("boomaaa\n");
+                char *dato = popCurrent(tareaRecorrer -> tareasPrecedentes);
+              }
+              nextList(tareaRecorrer -> tareasPrecedentes);
+            }
+            heap_pop(auxRecorrer);
+          }
+        }
+      }
+      else 
+      {
+        while(heap_top(auxRecorrer) != NULL)
+        {
+          Tarea *tareaRecorrer = (Tarea *) heap_top(auxRecorrer);
+          
+          while(tareaRecorrer -> tareasPrecedentes != NULL)
+          {
+            printf("boom\n");
+            if(strcmp(firstList(tareaRecorrer -> tareasPrecedentes), tarea) == 0)
+            {
+              printf("boom\n");
+              char *dato = popCurrent(tareaRecorrer -> tareasPrecedentes);
+              free(dato);
+            }
+            nextList(tareaRecorrer -> tareasPrecedentes);
+          }
+          heap_pop(auxRecorrer);
+        }
+        heap_remove(TPH, tareaBuscar);
+      }
       printf("\nLa tarea %s ha sido marcada como completada y fue eliminada de lista de tareas pendientes.\n\n", tarea);
-      //(*tareasRegistradas)--;
-      break;
+      (*tareasRegistradas)--;
+      TPH = heap_clone(auxRecorrer);
+      free(tarea);
+      return;
     }
     heap_pop(auxBuscar);
   }
 
   if(!heap_top(auxBuscar)) printf("\nNo se encontró la tarea %s en el sistema.\n\n", tarea);
   
-  auxBuscar = heap_clone(TPH);
   free(tarea);
+
 }
+
 
 // 5.
 
 void deshacerAccion(Heap *TPH)
 {
-  
+  printf(":3\n");
   return;
 }
 
@@ -288,10 +392,77 @@ void deshacerAccion(Heap *TPH)
 
 void cargarTareas(Heap *TPH, int *tareasRegistradas)
 {
+  char nombreArchivo[MAX];
   
-  return;
+  printf("Ingrese el nombre del archivo a importar:\n");
+  scanf("%30s", nombreArchivo);
+  
+  FILE *fp = fopen(nombreArchivo, "r");
+  
+  if (fp == NULL)
+  {
+    printf("\nNo hay ningún archivo con ese nombre.\n\n");
+    return;
+  }
+  
+  char linea[1024];
+  int i = 0;
+  int k = 0;
+  
+  fgets(linea, 1023, fp);
+  
+  while(fgets(linea, 1023, fp) != NULL)
+  {
+    Tarea *tareaAux = malloc(sizeof(Tarea));
+    int prioridad;
+    
+    tareaAux -> tareasPrecedentes = createList();
+    tareaAux -> registro = createStack();
+    tareaAux -> completada = false;
+    tareaAux -> procedentes = false;
+    
+    stack_push(tareaAux -> registro, "0");
+    
+    for(i = 0 ; i < 3 ; i++)
+    {
+      char *aux = gets_csv_field(linea, i);
+      
+      if(i == 0)
+      {
+        strcpy(tareaAux -> nombre, aux);
+      }
+      
+      if(i == 1)
+      {
+        prioridad = atol(aux) * (-1);
+      }
+      
+      if(i == 2)
+      {
+        if (strlen(aux) > 1)
+        {
+          tareaAux -> procedentes = true;
+          char *precedentes = strtok(aux, " ");
+          while (precedentes != NULL)
+          {
+            pushFront(tareaAux -> tareasPrecedentes, precedentes);
+            precedentes = strtok(NULL, " ");
+          }
+        }
+        else tareaAux -> procedentes = false;
+      }
+    }
+    
+    heap_push(TPH, tareaAux, prioridad);
+    k++;
+    (*tareasRegistradas)++;
+  }
+  
+  fclose(fp);
+  
+  
+  printf("\n%i jugadores han sido importados al sistema!\n\n", k);
 }
-
 // Programa principal
 
 int main()
