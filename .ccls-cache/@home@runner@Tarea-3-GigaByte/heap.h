@@ -15,8 +15,6 @@ void heap_pop_especifico(Heap* pq, int i);
 void heap_remove(Heap *pq, void *tareaBuscar);
 int get_size(Heap *pq);
 Heap* heap_clone(Heap* pq);
-void heap_destroy(Heap* pq);
-void *heap_find(Heap* pq, char *nombre);
 void* get_data(Heap* pq, int pos);
 
 #endif /* HashMap_h */
