@@ -11,11 +11,9 @@ Para una correcta ejecución de nuestra tarea y poder tener un acceso al program
 
 ## Funcionamiento del programa
 
-Es ideal que cuando el programa pregunte si es que desea realizar otra operación, solo ingrese una s o una n, ya que si no el programa comienza a dar errores en todo lo que le sigue, ya que no validamos específicamente si ingresa otra letra.
+El programa funciona parcialmente, no pudimos realizar correctamente la función ```marcarCompletada()```, esta borra la tarea del heap, pero no borra esta desde la lista de tareas precedentes de otras tareas.
 
-Es ideal que el archivo csv al importar, termine en un espacio "".
-
-Además de esos detalles, el programa funciona correctamente.
+Debido a falta de tiempo, no pudimos completar la función ```deshacerAccion()```.
 
 ## Aportes grupales, trabajo en equipo, retroalimentación y trabajo grupal
 
@@ -26,14 +24,14 @@ Además de esos detalles, el programa funciona correctamente.
   1. Encargado de la estructuración general del programa en ```main.c``` (menú y variables asociadas) y ```README.md```.
   2. Encargado de la creación de las funciones ```agregarTarea()``` y ```mostrarTareas()```.
   3. Encargado de las subfunciones ```validar()``` y ```preguntarTarea()```.
-  4. Aporte en la creación de la función ```desahacerAccion()``` (Función fue hecha entre los dos).
+  4. Aporte en la creación de la función ```deshacerAccion()``` (Función fue hecha entre los dos).
   ---
   
 * Claudio Toledo:
   
-  1. Encargado de hacer la funcion ```importarJugadoresCSV``` , ```agregarPuntosHabilidad```
-  2. Aportes generales en la 7ma funcion ```deshacerAccion()```
-     
+  1. Encargado de hacer la funcion ```agregarTarea()``` , ```mostrarTareas()```.
+  2. Aporte en la creación de la función ```deshacerAccion()``` (Función fue hecha entre los dos).
+  3. Encargado de hacer el Struct de Pilas.
   ---
 
 ### Trabajo grupal
