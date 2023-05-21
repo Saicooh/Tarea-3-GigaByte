@@ -137,3 +137,64 @@ void heap_pop(Heap* pq)
     now = now * 2 + 1;
   }
 }
+
+void heap_pop_especifico(Heap* pq, int i)
+{
+
+  pq->size--;
+  pq->heapArray[i] = pq->heapArray[pq->size];
+  int priority=pq->heapArray[i].priority;
+
+  
+  int now = 1;
+  
+  while((now<=pq->size && pq->heapArray[now].priority < priority) || (now+1<=pq->size && pq->heapArray[now+1].priority < priority)){
+    heapElem tmp=pq->heapArray[(now-1)/2];
+    if(now+1<=pq->size && pq->heapArray[now].priority > pq->heapArray[now+1].priority) now++;
+
+    pq->heapArray[(now-1)/2]=pq->heapArray[now];
+    pq->heapArray[now]=tmp;
+
+    now = now * 2 + 1;
+  }
+  //printf("size = %i, top = %i\n", pq->size, pq->heapArray[0].data );
+}
+
+
+void heap_destroy(Heap *pq)
+{
+  if (pq == NULL) return;
+
+  while (heap_top(pq) != NULL) heap_pop(pq);
+
+  free(pq);
+}
+
+void *heap_find(Heap *pq, char *nombre) 
+{
+  if (pq == NULL || nombre == NULL) return NULL;
+
+  Heap *aux = heap_clone(pq);
+  Tarea *found = NULL;
+
+  while (heap_top(aux) != NULL) 
+  {
+    Tarea *current = (Tarea *) heap_top(aux);
+
+    if (strcmp(current->nombre, nombre) == 0)
+    {
+      found = current;
+      break;
+    }
+    heap_pop(aux);
+  }
+
+  heap_destroy(aux);
+
+  return found;
+}
+
+void* get_data(Heap* pq, int pos)
+{
+  return pq->heapArray[pos].data;
+}

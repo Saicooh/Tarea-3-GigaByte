@@ -32,4 +32,6 @@ bool List_isEmpty(List *list);
 
 List *List_clone(List * list);
 
+void removeList(List * list, char* target);
+
 #endif /* List_h */

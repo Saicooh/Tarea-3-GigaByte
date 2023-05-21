@@ -32,7 +32,7 @@ Además de esos detalles, el programa funciona correctamente.
 * Claudio Toledo:
   
   1. Encargado de hacer la funcion ```importarJugadoresCSV``` , ```agregarPuntosHabilidad```
-  2. Aportes generales en la 7ma funcion ```deshacerAccion```
+  2. Aportes generales en la 7ma funcion ```deshacerAccion()```
      
   ---
 

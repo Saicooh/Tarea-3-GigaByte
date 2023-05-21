@@ -12,5 +12,4 @@ typedef List Stack;
 #define stack_clean(stack) cleanList(stack)
 #define stack_clone(stack) List_clone(stack)
 
-
 #endif /* Stack.h */

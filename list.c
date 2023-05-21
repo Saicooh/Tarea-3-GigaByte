@@ -120,9 +120,9 @@ void *popFront(List *list)
   return popCurrent(list);
 }
 
-void * popBack(List * list) {
-    list->current = list->tail;
-    return popCurrent(list);
+void *popBack(List * list) {
+  list->current = list->tail;
+  return popCurrent(list);
 }
 
 void *popCurrent(List * list)
@@ -184,4 +184,27 @@ List *List_clone(List *src)
   free(tempStack);
 
   return dst;
+}
+
+void removeList(List *list, char *target)
+{
+  Node *current = list->head;
+  Node *prev = NULL;
+  
+  // Traverse the list until we find the target or reach the end
+  while (current != NULL && strcmp(current->data, target) != 0)
+  {
+    prev = current;
+    current = current->next;
+  }
+  
+  // If we found the target, remove it from the list
+  if (current != NULL)
+  {
+    if (prev == NULL) list->head = current->next;
+    else prev->next = current->next;
+    
+    free(current->data);
+    free(current);
+  }
 }
